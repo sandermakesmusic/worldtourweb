@@ -26,12 +26,13 @@
     position: fixed;
     bottom: 20px;
     left: 50%;
+    border-radius: 999px;
     transform: translateX(-50%);
     background-color: rgba(0,0,0,0.8);
     color: white;
     font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
-    padding: 12px 16px;
+    padding: 12px 46px;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
@@ -49,7 +50,8 @@
     color: white;
     font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
-    padding: 12px 16px;
+    padding: 12px 46px;
+    border-radius: 999px;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
@@ -66,7 +68,8 @@
     background-color: rgba(0,0,0,0.8);
     color: white;
     cursor: pointer;
-    padding: 12px 16px;
+    padding: 12px 46px;
+    border-radius: 999px;
     z-index: 10;
     transition: all 0.4s ease;
     max-width: 50%;
