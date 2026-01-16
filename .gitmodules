@@ -1,3 +1,6 @@
 [submodule "simplex-noise.js"]
 	path = simplex-noise.js
 	url = https://github.com/jwagner/simplex-noise.js.git
+[submodule "three"]
+	path = three
+	url = https://github.com/mrdoob/three.js.git
