@@ -74,7 +74,7 @@
   }
   #tour-dates:hover { background-color: white; color: black; }
 
-  #tour-list ul li span.date { width: clamp(80px, 20vw, 120px); display: inline-block; }
+  #tour-list ul li span.date { width: clamp(80px, 18vw, 120px); display: inline-block; }
 
   #tour-close {
     display: none;
