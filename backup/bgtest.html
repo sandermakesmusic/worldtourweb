@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Three.js Background with Aspect Ratio</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+
+// ---------- Renderer ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ---------- Background scene ----------
+const bgScene = new THREE.Scene();
+const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+// ---------- Background plane ----------
+const texture = new THREE.TextureLoader().load('background.jpg', () => resizeBackground());
+const material = new THREE.MeshBasicMaterial({ map: texture });
+material.depthTest = false;
+material.depthWrite = false;
+const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+bgScene.add(plane);
+
+// ---------- Resize ----------
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    resizeBackground();
+});
+
+function resizeBackground() {
+    if (!texture.image) return;
+
+    const img = texture.image;
+    const imgAspect = img.width / img.height;
+    const winAspect = window.innerWidth / window.innerHeight;
+
+    let scale = 1;
+
+    if (winAspect > imgAspect) {
+        // window is wider than image, scale by height
+        scale = window.innerHeight / img.height;
+    } else {
+        // window is taller than image, scale by width
+        scale = window.innerWidth / img.width;
+    }
+
+    // Compute plane scale in normalized -1..1 orthographic units
+    const orthoHeight = 2; // because ortho camera goes -1 to 1
+    const orthoWidth = 2;
+
+    let planeWidth, planeHeight;
+
+    if (winAspect > imgAspect) {
+        planeHeight = orthoHeight;
+        planeWidth = orthoHeight * imgAspect / winAspect;
+    } else {
+        planeWidth = orthoWidth;
+        planeHeight = orthoWidth / imgAspect * winAspect;
+    }
+
+    plane.scale.set(planeWidth, planeHeight, 1);
+}
+
+// ---------- Animate ----------
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(bgScene, bgCamera);
+}
+
+animate();
+</script>
+</body>
+</html>

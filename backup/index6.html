@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>G Jones B2B Eprom &mdash; World Tour</title>
+<link rel="stylesheet" href="https://use.typekit.net/wws6nea.css">
+<style>
+  body { 
+    margin: 0; 
+    overflow: hidden; 
+    font-family: "futura-pt", sans-serif;
+    font-weight: 500;
+    font-style: normal; 
+  }
+  
+  canvas { display: block; }
+
+  /* Bottom links */
+  #bottom-music {
+    font-family: "futura-pt-bold", sans-serif;
+    font-weight: 700;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    font-size: 4rem;
+    text-decoration: none;
+    padding: 12px 16px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+  }
+  #bottom-music:hover { background-color: white; color: black; }
+
+  #bottom-merch {
+    font-family: "futura-pt-bold", sans-serif;
+    font-weight: 700;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    font-size: 4rem;
+    text-decoration: none;
+    padding: 12px 16px;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+  }
+  #bottom-merch:hover { background-color: white; color: black; }
+
+  /* Tour Dates Overlay */
+  #tour-dates {
+    font-family: "futura-pt-bold", sans-serif;
+    font-weight: 700px;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    cursor: pointer;
+    padding: 12px 16px;
+    z-index: 10;
+    transition: all 0.4s ease;
+    max-width: 50%;
+    overflow: hidden;
+  }
+  #tour-dates:hover { background-color: white; color: black; }
+
+  #tour-list ul li span.date { width:120px; display: inline-block; }
+
+  #tour-close {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 55px;
+    font-size: 4rem;
+    font-family: futura-pt, sans-serif;
+    font-weight:500;
+    cursor: pointer;
+    color: white;
+    z-index: 11;
+  }
+  #tour-close:hover { color: #444; }
+
+  #tour-header { font-size: 4rem; }
+
+  #tour-list {
+    font-family: "futura-pt", sans-serif; font-weight: 500;
+    margin-top: 12px;
+    display: none;
+    font-weight: normal;
+    font-size: 36px;
+  }
+
+  #tour-list ul li a {
+    font-family: futura-pt, sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    background-color:white;
+    color: black;
+    text-decoration: none;
+    padding: 0px 15px;
+    border-radius: 999px;
+    display: inline-block;
+    margin-top:3px;
+  }
+
+  #tour-list ul li a:hover {
+    background-color:black;
+    color: white;
+  }
+
+  #tour-list ul { list-style:none; padding:0; margin:0; }
+
+  #tour-dates.expanded {
+    background-color: black; color: white;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    border: 20px solid rgba(0,0,0,0.2);
+    border-radius: 0;
+    overflow-y: auto;
+    max-width: none;
+    max-height: none;
+    box-sizing: border-box;
+  }
+
+  #tour-dates.expanded #tour-close { display: block; }
+  #tour-dates.expanded #tour-list { display: block; }
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three/build/three.module.js"
+  }
+}
+</script>
+</head>
+
+<body>
+<script type="module">
+import * as THREE from './three/build/three.module.js';
+import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+import { SimplexNoise } from './three/examples/jsm/math/SimplexNoise.js';
+
+// ---------- Renderer ----------
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000);
+document.body.appendChild(renderer.domElement);
+
+// ---------- Scene & Camera ----------
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,0,3);
+const target = new THREE.Vector3(0,-0.125,0);
+
+// ---------- Ambient light ----------
+const ambient = new THREE.AmbientLight(0x404040,20);
+scene.add(ambient);
+
+// ---------- Background wavy wall ----------
+const width=100, height=100, segments=600;
+const bgGeometry = new THREE.PlaneGeometry(width,height,segments,segments);
+const bgTexture = new THREE.TextureLoader().load('background2.jpg', (tex)=>{
+    tex.wrapS=THREE.RepeatWrapping;
+    tex.wrapT=THREE.RepeatWrapping;
+    tex.repeat.set(19,30);
+});
+const bgMaterial = new THREE.MeshBasicMaterial({map:bgTexture, side:THREE.DoubleSide});
+const bgPlane = new THREE.Mesh(bgGeometry,bgMaterial);
+//bgPlane.rotation.x = Math.PI/2; // vertical wall
+bgPlane.position.set(0,0,-7.77);
+scene.add(bgPlane);
+
+const simplex = new SimplexNoise();
+
+// ---------- Placeholder PNG ----------
+const placeholderTexture = new THREE.TextureLoader().load('./img/theguy2.png');
+placeholderTexture.colorSpace = THREE.SRGBColorSpace;
+const placeholderMaterial = new THREE.MeshBasicMaterial({map:placeholderTexture, transparent:true});
+const placeholderPlane = new THREE.Mesh(new THREE.PlaneGeometry(2,2), placeholderMaterial);
+camera.add(placeholderPlane);
+placeholderPlane.position.set(.07,.1,-3.75);
+placeholderPlane.material.depthTest = false;
+scene.add(camera);
+
+let earthPlane = null;
+
+// ---------- GLB Loader ----------
+const loader = new GLTFLoader();
+let model = null;
+loader.load('scene.glb', (gltf)=>{
+    model = gltf.scene;
+
+    // Scale
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const scale = 2.5/size;
+    model.scale.setScalar(scale);
+
+    const rotator = model.getObjectByName('rotator');
+    if (!rotator) console.warn('rotator group not found!');
+
+    earthPlane = rotator.getObjectByName('earth_planegltf'); 
+    if (!earthPlane) console.warn('earth_planegltf not found!');
+
+    // Metalness
+    model.traverse(obj=>{
+        if(obj.isMesh && obj.material){
+            const mats = Array.isArray(obj.material)?obj.material:[obj.material];
+            mats.forEach(m=>{if('metalness' in m)m.metalness=0.5;});
+            //mats.forEach(m=>{if('roughness' in m)m.roughness=0.5;});
+        }
+    });
+    
+    scene.add(model);
+
+    // fade + remove
+let o = 1;
+(function fade() {
+  if ((o -= 0.04) <= 0) return camera.remove(placeholderPlane);
+  placeholderPlane.material.opacity = o;
+  requestAnimationFrame(fade);
+})();
+
+    // GLB lights
+    let glbLights=0;
+    model.traverse(child=>{
+        if(child.isLight){
+            child.intensity*=0.25;
+            console.log('GLB light:',child.type,'Intensity:',child.intensity);
+            glbLights++;
+        }
+    });
+    if(glbLights===0) console.warn('No lights in GLB!');
+
+});
+
+// ---------- Input ----------
+let inputX=0, inputY=0;
+const parallaxIntensity=5;
+document.addEventListener('mousemove', e=>{
+    inputX = (e.clientX/window.innerWidth-0.5)*2;
+    inputY = (e.clientY/window.innerHeight-0.5)*2;
+});
+document.addEventListener('touchstart', e=>{
+    if(e.touches.length===1){
+        inputX=(e.touches[0].clientX/window.innerWidth-0.5)*2;
+        inputY=(e.touches[0].clientY/window.innerHeight-0.5)*2;
+    }
+});
+document.addEventListener('touchmove', e=>{
+    if(e.touches.length===1){
+        inputX=(e.touches[0].clientX/window.innerWidth-0.5)*2;
+        inputY=(e.touches[0].clientY/window.innerHeight-0.5)*2;
+    }
+});
+
+// ---------- Resize ----------
+window.addEventListener('resize',()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------- Camera orbit ----------
+function updateCameraParallax(){
+    if(!model) return;
+    const radius = camera.position.length();
+    const angleY = -inputX * parallaxIntensity * 0.1;
+    const angleX = inputY * parallaxIntensity * 0.1;
+    const phi = Math.PI/2 - angleX;
+    const theta = angleY;
+    camera.position.x = radius*Math.sin(phi)*Math.sin(theta);
+    camera.position.y = radius*Math.cos(phi);
+    camera.position.z = radius*Math.sin(phi)*Math.cos(theta);
+    camera.lookAt(target);
+}
+
+// ---------- Animate ----------
+function animate(){
+    requestAnimationFrame(animate);
+    
+
+    // Scroll texture diagonally
+    bgTexture.offset.x += -0.001;
+    bgTexture.offset.y += -0.001;
+
+    // Wavy displacement
+    const positions = bgGeometry.attributes.position;
+    const time = performance.now()*0.001;
+    for(let i=0;i<positions.count;i++){
+        const x = positions.getX(i);
+        const y = positions.getY(i);
+        positions.setZ(i,simplex.noise3d(x*0.18,y*0.18,time*0.3)*1.4);
+    }
+    positions.needsUpdate = true;
+
+    if (earthPlane) {
+        earthPlane.rotation.x += 0.01;  // spin on X-axis
+    }
+
+    renderer.render(scene,camera);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    updateCameraParallax();
+}
+
+animate();
+</script>
+
+<!-- Tour Dates Overlay -->
+<div id="tour-dates">
+  <div id="tour-header">Tour</div>
+  <div id="tour-close">&times;</div>
+  <div id="tour-list">
+    <ul>
+      <li><span class="date">2.6 &mdash; </span><a href="https://thebellwetherla.com/events/g-jones-b2b-eprom-260206">The Bellwether</a> &mdash; Los Angeles, CA</li>
+      <li><span class="date">2.7 &mdash; </span><a href="https://thebellwetherla.com/events/g-jones-b2b-eprom-260206">Gem & Jam</a> &mdash; Tucson, AZ</li>
+      <li><span class="date">3.7 &mdash; </span><a href="">SILO</a> &mdash; Brooklyn, NY</li>
+      <li><span class="date">3.20 &mdash; </span><a href="">Warehouse Residency</a> &mdash; Nashville, TN</li>
+      <li><span class="date">3.27 &mdash; </span><a href="https://www.moshtix.com.au/v2/event/eighty-six-x-curi-collective-pres-g-jones-b2b-eprom/190435">Mary's Underground</a> &mdash; Sydney, NSW, AUS</li>
+      <li><span class="date">3.28 &mdash; </span><a href="">Villa</a> &mdash; Perth, WA, AUS</li>
+      <li><span class="date">4.2 &mdash; </span><a href="">Misfits</a> &mdash; Melbourne, VIC, AUS</li>
+      <li><span class="date">4.3 &mdash; </span><a href="https://www.rabbitseatlettuce.com.au/tickets-info">Rabbits Eat Lettuce</a> &mdash; Stonelands, QLD, AUS</li>
+      <li><span class="date">4.4 &mdash; </span><a href="">Mothership</a> &mdash; Auckland, North Island, NZ</li>
+      <li><span class="date">4.16 &mdash; </span><a href="">Paradiso</a> &mdash; Amsterdam, NL</li>
+      <li><span class="date">4.17 &mdash; </span><a href="">Gretchen</a> &mdash; Berlin, DE</li>
+      <li><span class="date">4.18 &mdash; </span><a href="">Petit Bain</a> &mdash; Paris, FR</li>
+      <li><span class="date">4.23 &mdash; </span><a href="">Sneaky Petes</a> &mdash; Edinburgh, UK</li>
+      <li><span class="date">4.24 &mdash; </span><a href="">Kable</a> &mdash; Manchester, UK</li>
+      <li><span class="date">4.25 &mdash; </span><a href="">The Steel Yard</a> &mdash; London, UK</li>
+      <li><span class="date">5.30 &mdash; </span><a href="https://projectglow.frontgatetickets.com/">Project GLOW</a> &mdash; Washington, D.C.</li>
+      <li><span class="date">5.31 &mdash; </span><a href="https://book.illfest.com/">Illfest</a> &mdash; Austin, TX</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Bottom Links -->
+<a href="https://stem.ffm.to/disk-utility" target="_blank" id="bottom-music">Music</a>
+<a href="https://gjones.store/password" target="_blank" id="bottom-merch">Store</a>
+
+<script>
+const tourDiv = document.getElementById('tour-dates');
+tourDiv.addEventListener('click', () => {
+  tourDiv.classList.toggle('expanded');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Three.js GLB Viewer with GLB Lights Only</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+  canvas { display: block; }
+</style>
+
+<!-- Import map so GLTFLoader can resolve 'three' -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+
+// ----------------- Main scene -----------------
+const scene = new THREE.Scene();
+
+// ----------------- Camera -----------------
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+// Pivot for equidistant camera
+const pivot = new THREE.Object3D();
+scene.add(pivot);
+pivot.add(camera);
+camera.position.set(0, 1.5, 3);
+
+// Ambient Light
+
+const amblight = new THREE.AmbientLight(0x404040, 20); // soft white light
+scene.add(amblight);
+
+// ----------------- Renderer -----------------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000); // black bars
+renderer.physicallyCorrectLights = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+// ----------------- Background scene -----------------
+const bgScene = new THREE.Scene();
+const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+const bgTexture = new THREE.TextureLoader().load(
+  'background.jpg', 
+  (image) => resizeBackground(image)
+);
+const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
+const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMaterial);
+bgScene.add(bgPlane);
+
+// ----------------- Load GLB -----------------
+const loader = new GLTFLoader();
+let model = null;
+
+loader.load(
+  'scene.glb',
+  (gltf) => {
+    model = gltf.scene;
+
+    // Scale first
+    const boxBefore = new THREE.Box3().setFromObject(model);
+    const size = boxBefore.getSize(new THREE.Vector3()).length();
+    const scale = 2.5 / size;
+    model.scale.setScalar(scale);
+
+    gltf.scene.traverse((obj) => {
+    if (obj.isMesh && obj.material) {
+        const mat = obj.material;
+        
+        // Handle multi-material meshes
+        if (Array.isArray(mat)) {
+            mat.forEach(m => { if ('metalness' in m) m.metalness = 0.5; });
+        } else {
+            if ('metalness' in mat) mat.metalness = 0.5;
+        }
+    }
+});
+
+    // Recompute bounding box after scaling
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+
+    // Center model on pivot
+    model.position.sub(center);
+    pivot.position.copy(center);
+
+    scene.add(model);
+
+    // ----------------- Log GLB lights only -----------------
+    let glbLights = 0;
+    model.traverse((child) => {
+        if (child.isLight) {
+            child.intensity *= 0.25; // reduce light intensity
+            console.log('GLB light:', child.type, 'Intensity:', child.intensity);
+            glbLights++;
+        }
+    });
+    if (glbLights === 0) console.warn('No lights found in GLB!');
+  },
+  undefined,
+  (err) => console.error('GLB load error:', err)
+);
+
+// ----------------- Mouse parallax -----------------
+let mouseX = 0, mouseY = 0;
+const parallaxIntensity = 5;
+
+document.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// ----------------- Resize handling -----------------
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  resizeBackground(bgTexture.image);
+});
+
+// ----------------- Resize background plane -----------------
+function resizeBackground(image) {
+  if (!image) return;
+
+  const canvasAspect = window.innerWidth / window.innerHeight;
+  const imageAspect = image.width / image.height;
+
+  let scaleX = 1;
+  let scaleY = 1;
+
+  if (canvasAspect > imageAspect) {
+    scaleX = canvasAspect / imageAspect;
+  } else {
+    scaleY = imageAspect / canvasAspect;
+  }
+
+  bgPlane.scale.set(scaleX, scaleY, 1);
+}
+
+// ----------------- Animation loop -----------------
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Rotate pivot for camera parallax
+  const rotationIntensity = 0.25;
+  pivot.rotation.y += (-mouseX * parallaxIntensity * rotationIntensity - pivot.rotation.y) * 0.1;
+  pivot.rotation.x += (-mouseY * parallaxIntensity * rotationIntensity - pivot.rotation.x) * 0.1;
+
+  // Camera always looks at pivot
+  camera.lookAt(pivot.position);
+
+  // Render background first
+  renderer.clear();
+  renderer.render(bgScene, bgCamera);
+
+  // Render main scene (model + GLB lights)
+  renderer.render(scene, camera);
+}
+
+animate();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Three.js GLB Viewer — Camera Orbit + Background</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+  canvas { display: block; }
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three/build/three.module.js"
+  }
+}
+</script>
+</head>
+
+<script type="module">
+import * as THREE from './three/build/three.module.js';
+import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+
+// ---------- Main scene ----------
+const scene = new THREE.Scene();
+
+// ---------- Camera ----------
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,1.5,3);
+const target = new THREE.Vector3(0,0,0);
+
+// ---------- Renderer ----------
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000);
+document.body.appendChild(renderer.domElement);
+
+// ---------- Ambient light ----------
+const ambient = new THREE.AmbientLight(0x404040, 20);
+scene.add(ambient);
+
+// ---------- Background scene ----------
+const bgScene = new THREE.Scene();
+const bgCamera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const bgTexture = new THREE.TextureLoader().load('background.jpg');
+const bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
+const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(2,2), bgMaterial);
+bgScene.add(bgPlane);
+
+// ---------- GLB Loader ----------
+const loader = new GLTFLoader();
+let model = null;
+
+loader.load('scene.glb', (gltf)=>{
+    model = gltf.scene;
+
+    // Scale model
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const scale = 2.5 / size;
+    model.scale.setScalar(scale);
+
+    // Metalness
+    model.traverse(obj=>{
+        if(obj.isMesh && obj.material){
+            const mats = Array.isArray(obj.material)?obj.material:[obj.material];
+            mats.forEach(m=>{ if('metalness' in m)m.metalness=0.5; });
+        }
+    });
+
+    scene.add(model);
+
+    // GLB lights
+    let glbLights=0;
+    model.traverse(child=>{
+        if(child.isLight){
+            child.intensity*=0.25;
+            console.log('GLB light:', child.type, 'Intensity:', child.intensity);
+            glbLights++;
+        }
+    });
+    if(glbLights===0) console.warn('No lights in GLB!');
+});
+
+// ---------- Mouse ----------
+let mouseX=0, mouseY=0;
+const parallaxIntensity=5;
+document.addEventListener('mousemove', e=>{
+    mouseX=(e.clientX/window.innerWidth-0.5)*2;
+    mouseY=(e.clientY/window.innerHeight-0.5)*2;
+});
+
+// ---------- Resize ----------
+window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------- Camera orbit ----------
+function updateCameraParallax(){
+    if(!model) return;
+    const radius = camera.position.length();
+    const angleY = -mouseX*parallaxIntensity*0.1;
+    const angleX = mouseY*parallaxIntensity*0.1;
+    const phi = Math.PI/2 - angleX;
+    const theta = angleY;
+    camera.position.x = radius*Math.sin(phi)*Math.sin(theta);
+    camera.position.y = radius*Math.cos(phi);
+    camera.position.z = radius*Math.sin(phi)*Math.cos(theta);
+    camera.lookAt(target);
+}
+
+// ---------- Animate ----------
+function animate(){
+    requestAnimationFrame(animate);
+    updateCameraParallax();
+
+    // render background first
+    renderer.clear();
+    renderer.render(bgScene, bgCamera);
+
+    // render main scene
+    renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>
