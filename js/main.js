@@ -57,7 +57,7 @@ scene.add(new THREE.AmbientLight(0x404040, 20));
 // ------------------------------------------------------------
 const bgW = 100;
 const bgH = 100;
-const bgSeg = 300;
+const bgSeg = 600;
 const bgGeometry = new THREE.PlaneGeometry(bgW, bgH, bgSeg, bgSeg);
 
 const bgTexture = new THREE.TextureLoader().load('background2.jpg', (tex) => {
