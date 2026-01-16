@@ -1,0 +1,3 @@
+[submodule "simplex-noise.js"]
+	path = simplex-noise.js
+	url = https://github.com/jwagner/simplex-noise.js.git
