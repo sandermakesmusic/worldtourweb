@@ -97,7 +97,7 @@
     margin-top: 12px;
     display: none;
     font-weight: normal;
-    font-size: clamp(12px, 3vw, 36px);
+    font-size: clamp(12px, 4vw, 36px);
   }
 
   #tour-list ul li a {
