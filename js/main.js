@@ -35,7 +35,7 @@ scene.add(bgPlane);
 const simplex = new SimplexNoise();
 
 // ---------- Placeholder PNG ----------
-const placeholderTexture = new THREE.TextureLoader().load('../img/theguy2.png');
+const placeholderTexture = new THREE.TextureLoader().load('./img/theguy2.png');
 placeholderTexture.colorSpace = THREE.SRGBColorSpace;
 const placeholderMaterial = new THREE.MeshBasicMaterial({map:placeholderTexture, transparent:true});
 const placeholderPlane = new THREE.Mesh(new THREE.PlaneGeometry(2,2), placeholderMaterial);
@@ -49,7 +49,7 @@ let earthPlane = null;
 // ---------- GLB Loader ----------
 const loader = new GLTFLoader();
 let model = null;
-loader.load('../scene.glb', (gltf)=>{
+loader.load('./scene.glb', (gltf)=>{
     model = gltf.scene;
 
     // Scale
