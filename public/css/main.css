@@ -133,6 +133,7 @@
     max-width: none;
     max-height: none;
     box-sizing: border-box;
+    z-index: 100;
   }
 
   #tour-dates.expanded #tour-close { display: block; }
