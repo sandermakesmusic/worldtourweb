@@ -10,9 +10,20 @@ renderer.setClearColor(0x000000);
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// VR Button - add with custom ID for styling
+// VR Button - only show on WebXR-capable devices
 const vrButton = VRButton.createButton(renderer);
 vrButton.id = 'vr-button';
+vrButton.style.display = 'none'; // Hide by default
+
+if ('xr' in navigator) {
+    navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+        if (supported) {
+            vrButton.style.display = '';
+            vrButton.textContent = 'ENTER VR';
+        }
+        // If not supported, button stays hidden
+    });
+}
 document.body.appendChild(vrButton);
 
 // ---------- Scene & Camera ----------
