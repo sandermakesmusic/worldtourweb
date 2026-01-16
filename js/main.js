@@ -3,6 +3,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/
 import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/DRACOLoader.js';
 import { SimplexNoise } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/math/SimplexNoise.js';
 import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/webxr/VRButton.js';
+import Stats from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/stats.module.js';
 
 // ------------------------------------------------------------
 // Renderer
@@ -56,7 +57,7 @@ scene.add(new THREE.AmbientLight(0x404040, 20));
 // ------------------------------------------------------------
 const bgW = 100;
 const bgH = 100;
-const bgSeg = 600;
+const bgSeg = 300;
 const bgGeometry = new THREE.PlaneGeometry(bgW, bgH, bgSeg, bgSeg);
 
 const bgTexture = new THREE.TextureLoader().load('background2.jpg', (tex) => {
@@ -223,6 +224,7 @@ function updateCameraParallax() {
 // Animate
 // ------------------------------------------------------------
 function animate() {
+    stats.begin();
   // scroll texture diagonally
   bgTexture.offset.x += -0.001;
   bgTexture.offset.y += -0.001;
@@ -245,6 +247,14 @@ function animate() {
   if (!renderer.xr.isPresenting) updateCameraParallax();
 
   renderer.render(scene, camera);
+  stats.end();
 }
+
+const stats = new Stats();
+stats.dom.style.position = 'fixed';
+stats.dom.style.left = '10px';
+stats.dom.style.top = '10px';
+stats.dom.style.zIndex = '9999';
+document.body.appendChild(stats.dom);
 
 renderer.setAnimationLoop(animate);
