@@ -9,12 +9,22 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
-document.body.appendChild(VRButton.createButton(renderer));
+
+// VR Button - add with custom ID for styling
+const vrButton = VRButton.createButton(renderer);
+vrButton.id = 'vr-button';
+document.body.appendChild(vrButton);
 
 // ---------- Scene & Camera ----------
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
-camera.position.set(0,0,3);
+
+// Use a camera rig for VR so head tracking works relative to this position
+const cameraRig = new THREE.Group();
+cameraRig.position.set(0, 0, 3); // Position in front of the model
+cameraRig.add(camera);
+scene.add(cameraRig);
+
 const target = new THREE.Vector3(0,-0.125,0);
 
 // ---------- Ambient light ----------
@@ -45,7 +55,6 @@ const placeholderPlane = new THREE.Mesh(new THREE.PlaneGeometry(2,2), placeholde
 camera.add(placeholderPlane);
 placeholderPlane.position.set(.07,.1,-3.75);
 placeholderPlane.material.depthTest = false;
-scene.add(camera);
 
 let earthPlane = null;
 
@@ -129,14 +138,14 @@ window.addEventListener('resize',()=>{
 // ---------- Camera orbit ----------
 function updateCameraParallax(){
     if(!model) return;
-    const radius = camera.position.length();
+    const radius = cameraRig.position.length();
     const angleY = -inputX * parallaxIntensity * 0.1;
     const angleX = inputY * parallaxIntensity * 0.1;
     const phi = Math.PI/2 - angleX;
     const theta = angleY;
-    camera.position.x = radius*Math.sin(phi)*Math.sin(theta);
-    camera.position.y = radius*Math.cos(phi);
-    camera.position.z = radius*Math.sin(phi)*Math.cos(theta);
+    cameraRig.position.x = radius*Math.sin(phi)*Math.sin(theta);
+    cameraRig.position.y = radius*Math.cos(phi);
+    cameraRig.position.z = radius*Math.sin(phi)*Math.cos(theta);
     camera.lookAt(target);
 }
 
