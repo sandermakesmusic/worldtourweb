@@ -32,7 +32,7 @@
     color: white;
     font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
-    padding: 12px 1.25rem;
+    padding: 0.1em clamp(.5em, 3vw, .8em);
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
@@ -50,7 +50,7 @@
     color: white;
     font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
-    padding: 12px 1.25rem;
+    padding: 0.1em clamp(.5em, 3vw, .8em);
     border-radius: 999px;
     cursor: pointer;
     z-index: 10;
@@ -67,8 +67,9 @@
     left: 20px;
     background-color: rgba(0,0,0,0.8);
     color: white;
+    font-size: clamp(1.5rem, 8vw, 4rem);
     cursor: pointer;
-    padding: 12px 1.25rem;
+    padding: 0.1em clamp(.5em, 3vw, .8em);
     border-radius: 999px;
     z-index: 10;
     transition: all 0.4s ease;
