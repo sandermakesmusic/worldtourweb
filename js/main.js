@@ -1,6 +1,6 @@
-import * as THREE from '../three/build/three.module.js';
-import { GLTFLoader } from '../three/examples/jsm/loaders/GLTFLoader.js';
-import { SimplexNoise } from '../three/examples/jsm/math/SimplexNoise.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
+import { SimplexNoise } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/math/SimplexNoise.js';
 
 // ---------- Renderer ----------
 const renderer = new THREE.WebGLRenderer({ antialias:true });
