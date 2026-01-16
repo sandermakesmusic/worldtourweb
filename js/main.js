@@ -1,12 +1,15 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
 import { SimplexNoise } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/math/SimplexNoise.js';
+import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/webxr/VRButton.js';
 
 // ---------- Renderer ----------
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
+renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
+document.body.appendChild(VRButton.createButton(renderer));
 
 // ---------- Scene & Camera ----------
 const scene = new THREE.Scene();
@@ -139,9 +142,6 @@ function updateCameraParallax(){
 
 // ---------- Animate ----------
 function animate(){
-    requestAnimationFrame(animate);
-    
-
     // Scroll texture diagonally
     bgTexture.offset.x += -0.001;
     bgTexture.offset.y += -0.001;
@@ -160,9 +160,14 @@ function animate(){
         earthPlane.rotation.x += 0.01;  // spin on X-axis
     }
 
+    // Only apply manual camera parallax when not in VR
+    if (!renderer.xr.isPresenting) {
+        updateCameraParallax();
+    }
+
     renderer.render(scene,camera);
     renderer.setPixelRatio(window.devicePixelRatio);
-    updateCameraParallax();
 }
 
-animate();
+// Use setAnimationLoop for WebXR compatibility
+renderer.setAnimationLoop(animate);
