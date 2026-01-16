@@ -18,7 +18,7 @@
     transform: translateX(-50%);
     background-color: rgba(0,0,0,0.8);
     color: white;
-    font-size: 4rem;
+    font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
     padding: 12px 16px;
     cursor: pointer;
@@ -36,7 +36,7 @@
     right: 20px;
     background-color: rgba(0,0,0,0.8);
     color: white;
-    font-size: 4rem;
+    font-size: clamp(1.5rem, 8vw, 4rem);
     text-decoration: none;
     padding: 12px 16px;
     cursor: pointer;
@@ -79,7 +79,7 @@
   }
   #tour-close:hover { color: #444; }
 
-  #tour-header { font-size: 4rem; }
+  #tour-header { font-size: clamp(1.5rem, 8vw, 4rem); }
 
   #tour-list {
     font-family: "futura-pt", sans-serif; font-weight: 500;
@@ -126,40 +126,3 @@
 
   #tour-dates.expanded #tour-close { display: block; }
   #tour-dates.expanded #tour-list { display: block; }
-
-  /* Mobile portrait responsive */
-  @media (max-width: 600px) {
-    #tour-header,
-    #bottom-music,
-    #bottom-merch {
-      font-size: 2rem;
-      padding: 8px 12px;
-    }
-
-    #tour-dates {
-      padding: 8px 12px;
-    }
-
-    #bottom-music {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #tour-dates {
-      max-width: 30%;
-    }
-  }
-
-  @media (max-width: 400px) {
-    #tour-header,
-    #bottom-music,
-    #bottom-merch {
-      font-size: 1.5rem;
-      padding: 6px 10px;
-    }
-
-    #tour-dates {
-      padding: 6px 10px;
-      max-width: 25%;
-    }
-  }
