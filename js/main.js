@@ -24,7 +24,7 @@ if ('xr' in navigator) {
         // If not supported, button stays hidden
     });
 }
-document.body.appendChild(vrButton);
+//document.body.appendChild(vrButton);
 
 // ---------- Scene & Camera ----------
 const scene = new THREE.Scene();
