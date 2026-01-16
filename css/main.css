@@ -4,9 +4,20 @@
     font-family: "futura-pt", sans-serif;
     font-weight: 500;
     font-style: normal; 
+    letter-spacing: -.08rem;
   }
   
   canvas { display: block; }
+
+  #font-prewarm{
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  font-family: futura-pt, Futura, sans-serif;
+  font-weight: 500;
+  font-size: 64px;
+  visibility: hidden;
+}
 
   /* Bottom links */
   #bottom-music {

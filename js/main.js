@@ -224,7 +224,7 @@ function updateCameraParallax() {
 // Animate
 // ------------------------------------------------------------
 function animate() {
-    stats.begin();
+    //stats.begin();
   // scroll texture diagonally
   bgTexture.offset.x += -0.001;
   bgTexture.offset.y += -0.001;
@@ -247,14 +247,16 @@ function animate() {
   if (!renderer.xr.isPresenting) updateCameraParallax();
 
   renderer.render(scene, camera);
-  stats.end();
+  //stats.end();
 }
 
+/*
 const stats = new Stats();
 stats.dom.style.position = 'fixed';
 stats.dom.style.left = '10px';
 stats.dom.style.top = '10px';
 stats.dom.style.zIndex = '9999';
 document.body.appendChild(stats.dom);
+*/
 
 renderer.setAnimationLoop(animate);

@@ -5,6 +5,9 @@
 <meta name="description" content="G Jones B2B Eprom World Tour — full list of tour dates, music, and merch links.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>G Jones B2B Eprom &mdash; World Tour</title>
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="preconnect" href="https://p.typekit.net" crossorigin>
+<link rel="preload" href="https://use.typekit.net/wws6nea.css" as="style">
 <link rel="stylesheet" href="https://use.typekit.net/wws6nea.css">
 <link rel="stylesheet" href="./css/main.css">
 
@@ -18,7 +21,7 @@
 </head>
 
 <body>
-
+<div id="font-prewarm" aria-hidden="true">.</div>
 <!-- Tour Dates Overlay -->
 <div id="tour-dates">
   <div id="tour-header">Tour</div>
@@ -51,6 +54,22 @@
 
 <!-- Store Link -->
 <a href="https://gjones.store/password" target="_blank" id="bottom-merch">Store</a>
+
+<script>
+const tourDiv = document.getElementById('tour-dates');
+
+let fontsReady = false;
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { fontsReady = true; });
+} else {
+  fontsReady = true; // older browsers fallback
+}
+
+tourDiv.addEventListener('click', async () => {
+  if (!fontsReady) return; // ignore clicks until fonts load
+  tourDiv.classList.toggle('expanded');
+});
+</script>
 
 <script>
 const tourDiv = document.getElementById('tour-dates');
