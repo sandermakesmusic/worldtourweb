@@ -1,13 +1,12 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/meshopt_decoder.module.js';
 import { SimplexNoise } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/math/SimplexNoise.js';
 import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/webxr/VRButton.js';
 import Stats from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/stats.module.js';
 
-// ------------------------------------------------------------
 // Renderer
-// ------------------------------------------------------------
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
@@ -15,13 +14,13 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// ------------------------------------------------------------
 // Scene + Camera
-// ------------------------------------------------------------
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 // camera rig so XR head tracking offsets from this base transform
+
 const cameraRig = new THREE.Group();
 cameraRig.position.set(0, 0, 3);
 cameraRig.add(camera);
@@ -30,9 +29,8 @@ scene.add(cameraRig);
 const target = new THREE.Vector3(0, -0.125, 0);
 const orbitRadius = cameraRig.position.length(); // lock radius once
 
-// ------------------------------------------------------------
 // VR button (only if supported)
-// ------------------------------------------------------------
+
 const vrButton = VRButton.createButton(renderer);
 vrButton.id = 'vr-button';
 vrButton.style.display = 'none';
@@ -47,17 +45,15 @@ if ('xr' in navigator) {
   });
 }
 
-// ------------------------------------------------------------
 // Light
-// ------------------------------------------------------------
+
 scene.add(new THREE.AmbientLight(0x404040, 20));
 
-// ------------------------------------------------------------
 // Background wavy wall
-// ------------------------------------------------------------
+
 const bgW = 100;
 const bgH = 100;
-const bgSeg = 600;
+const bgSeg = 500;
 const bgGeometry = new THREE.PlaneGeometry(bgW, bgH, bgSeg, bgSeg);
 
 const bgTexture = new THREE.TextureLoader().load('background2.jpg', (tex) => {
@@ -73,9 +69,8 @@ scene.add(bgPlane);
 
 const simplex = new SimplexNoise();
 
-// ------------------------------------------------------------
-// Placeholder (unlit, always on top)
-// ------------------------------------------------------------
+// Placeholder
+
 const placeholderTexture = new THREE.TextureLoader().load('./img/theguy2.png');
 placeholderTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -90,20 +85,17 @@ const placeholderPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), placehold
 placeholderPlane.position.set(0.07, 0.1, -3.75);
 camera.add(placeholderPlane);
 
-// ------------------------------------------------------------
-// Model loading (DRACO)
-// ------------------------------------------------------------
-const loader = new GLTFLoader();
+// Model loading
 
-const draco = new DRACOLoader();
-draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/draco/');
-loader.setDRACOLoader(draco);
+const loader = new GLTFLoader();
+loader.setMeshoptDecoder(MeshoptDecoder);
 
 let model = null;
-let earthPlane = null;
+let mixer;
+const clock = new THREE.Clock();
 
 loader.load(
-  './scene-processed.glb',
+  './scene-optimized-animated.glb',
   (gltf) => {
     model = gltf.scene;
 
@@ -112,19 +104,7 @@ loader.load(
     const size = box.getSize(new THREE.Vector3()).length() || 1;
     model.scale.setScalar(2.5 / size);
 
-    // find rotator + earth plane
-    const rotator = model.getObjectByName('rotator');
-    if (!rotator) console.warn('[GLB] rotator not found');
-
-    // preferred: earth inside rotator
-    earthPlane =
-      (rotator && rotator.getObjectByName('earth_planegltf')) ||
-      model.getObjectByName('earth_planegltf') ||
-      null;
-
-    if (!earthPlane) console.warn('[GLB] earth_planegltf not found');
-
-    // adjust materials
+    // adjust materials metalness
     model.traverse((obj) => {
       if (!obj.isMesh || !obj.material) return;
       const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
@@ -133,7 +113,20 @@ loader.load(
       }
     });
 
+    // scale light intensities
+    let glbLights = 0;
+    model.traverse((child) => {if (!child.isLight) return; child.intensity *= 0.25; glbLights++;});
+
     scene.add(model);
+
+    // animate
+    if (gltf.animations && gltf.animations.length) {
+      mixer = new THREE.AnimationMixer(model);
+      const clip = gltf.animations[0];
+      const action = mixer.clipAction(clip);
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      action.play();
+    }
 
     // fade out placeholder
     let o = 1;
@@ -145,16 +138,6 @@ loader.load(
       placeholderPlane.material.opacity = o;
       requestAnimationFrame(fade);
     })();
-
-    // log GLB lights (and reduce intensity)
-    let glbLights = 0;
-    model.traverse((child) => {
-      if (!child.isLight) return;
-      child.intensity *= 0.25;
-      console.log('GLB light:', child.type, 'Intensity:', child.intensity);
-      glbLights++;
-    });
-    if (glbLights === 0) console.warn('[GLB] No lights found');
   },
   undefined,
   (err) => console.error('[GLB] load error:', err)
@@ -225,6 +208,11 @@ function updateCameraParallax() {
 // ------------------------------------------------------------
 function animate() {
     //stats.begin();
+
+  // play gltf animation
+  const dt = clock.getDelta();
+  if (mixer) mixer.update(dt);
+  
   // scroll texture diagonally
   bgTexture.offset.x += -0.001;
   bgTexture.offset.y += -0.001;
@@ -239,9 +227,6 @@ function animate() {
     positions.setZ(i, simplex.noise3d(x * 0.18, y * 0.18, t * 0.3) * 1.4);
   }
   positions.needsUpdate = true;
-
-  // spin earth plane (old style)
-  if (earthPlane) earthPlane.rotation.x += 0.01;
 
   // only apply parallax when not in XR
   if (!renderer.xr.isPresenting) updateCameraParallax();
