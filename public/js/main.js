@@ -95,7 +95,7 @@ let mixer;
 const clock = new THREE.Clock();
 
 loader.load(
-  './scene-optimized-animated.glb',
+  './scene-optimized11.glb',
   (gltf) => {
     model = gltf.scene;
 
